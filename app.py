@@ -26,7 +26,9 @@ tasks = [
 #entry point url, naming convention: application name/api/version/resource
 @app.route('/todo/api/v1.0/tasks', methods=['GET'])
 def get_tasks(): #jsonify returns a response with JSON representation of an argument
-    return jsonify({'tasks': tasks})
+    #return jsonify({'tasks': tasks})
+    #before returning list of tasks, it will be passed through make_public_task method [16/03/2021]
+    return jsonify({'tasks': [make_public_task(task) for task in tasks]}) #list comprehension
 
 
 #second GET METHOD
@@ -85,6 +87,7 @@ def update_tasks(task_id):
     
 #improving design by making task public
 #list of tasks will be returned to the client + URI will be created using the URI from the get_task method 
+#the id will be replaced with the URI for the new_task dict
 def make_public_task(task):
     new_task = {} 
     for field in task: #looping through task dict
