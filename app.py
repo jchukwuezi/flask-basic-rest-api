@@ -1,8 +1,10 @@
 #example of building a REST API to create small to do list
 from flask import Flask, jsonify, abort, make_response, request, url_for
+from flask_httpauth import HTTPBasicAuth
 
 app = Flask(__name__)
 app.secret_key = "jchukwuezi"
+auth = HTTPBasicAuth()
 
 #implementing entry point of this web service
 
@@ -23,13 +25,16 @@ tasks = [
     }
 ]
 
+""" 
+29/03/2021: Commenting this out because the HTTP GET METHOD has been updated. Requires login details.
+
 #entry point url, naming convention: application name/api/version/resource
 @app.route('/todo/api/v1.0/tasks', methods=['GET'])
 def get_tasks(): #jsonify returns a response with JSON representation of an argument
     #return jsonify({'tasks': tasks})
     #before returning list of tasks, it will be passed through make_public_task method [16/03/2021]
     return jsonify({'tasks': [make_public_task(task) for task in tasks]}) #list comprehension
-
+"""
 
 #second GET METHOD
 @app.route('/todo/api/v1.0/tasks/<int:task_id>', methods=['GET'])
@@ -97,6 +102,22 @@ def make_public_task(task):
             new_task[field] = task[field] #if it's not an id then the fields in the new_task dict will be set to the fields in the task dict
     return new_task
 
+@auth.get_password
+def get_password(username): #this function obtains a password for a given user
+    if username == 'joshua':
+        return 'python'
+    return None
+
+@auth.error_handler #function will be used when unauthorized error code needs to be sent back to the client
+def unauthorized():
+    return make_response(jsonify({'error': 'Unauthorized access'}), 401)
+
+#updating HTTP GET METHOD to require a specific user before giving password so that tasks can be retrieved
+@app.route('/todo/api/v1.0/tasks')
+@auth.login_required
+def get_tasks():
+    return jsonify({'tasks': tasks})
+    
 
 
 
